@@ -117,9 +117,8 @@ MyGame.gameModel = function(gameSpecs){
         x: CANVASWIDTH/2,
         y: CANVASHEIGHT/2
     }
-    
+
     let astroids = [];
-    let ballGraphicsList = [];
     
     //Game graphics members
     let menuGraphic = graphics.Menu(menu);
@@ -133,6 +132,8 @@ MyGame.gameModel = function(gameSpecs){
     let gameScoreDisplay = graphics.Letters(gameScore);
     let countDownGraphic = graphics.Letters(countDown);
     let livesGraphicsList = [];
+    let shipGraphic = graphics.Texture(ship);
+    console.log(ship);
 
     let restartLives = function(){
         lives = 3;        
@@ -141,7 +142,7 @@ MyGame.gameModel = function(gameSpecs){
             livesGraphicsList.push(graphics.Texture({
                 imageSrc: gameSpecs.ship.src,
                 rotation: 0,
-                center: {x: CANVASWIDTH - 100*i - 50, y: 50},
+                center: {x: CANVASWIDTH - 100*i - 50, y: CANVASHEIGHT - 50},
                 width: gameSpecs.ship.width/2,
                 height: gameSpecs.ship.width/2,
             }));
@@ -179,7 +180,7 @@ MyGame.gameModel = function(gameSpecs){
             astroids[i].draw();
         }
         countDownGraphic.draw();
-        ship.render();
+        shipGraphic.draw();
     }
     
     let drawMenu = function(){
@@ -249,9 +250,8 @@ MyGame.gameModel = function(gameSpecs){
     }
 
     function restartShip(){
-        ship.x = ship.x0;
-        ship.width = ship.width0;
-        ship.height = ship.height0;
+        ship.position.x = graphics.canvas.width/2;
+        ship.position.y = graphics.canvas.height/2;
     }
 
     function newGame(){
@@ -288,11 +288,11 @@ MyGame.gameModel = function(gameSpecs){
     }
 
     that.turnShipRight = function(elapsedTime){
-        ship.rotation += .001 * elapsedTime;
+        ship.rotateRight(elapsedTime);
     };
     
     that.turnShipLeft = function(elapsedTime){
-
+        ship.rotateLeft(elapsedTime);
     };
 
     that.menuSelection = function(e){

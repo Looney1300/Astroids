@@ -19,48 +19,48 @@ MyGame.components.Ship = function(spec) {
     'use strict';
     let that = {};
 
-    let position = {
+    that.position = {
         x: spec.position.x,
         y: spec.position.y
     };
-
+    that.imageSrc = spec.src;
+    that.rotation = spec.rotation;
+    that.center = {x: that.position.x, y: that.position.y};
+    that.width = spec.width;
+    that.height = spec.width;
+    that.speed = spec.speed;
     //------------------------------------------------------------------
     //
     // Update the position of the missle.
     //
     //------------------------------------------------------------------
     that.update = function(elapsedTime) {
-        let vectorX = Math.cos(direction);
-        let vectorY = Math.sin(direction);
+        let vectorX = Math.cos(spec.direction);
+        let vectorY = Math.sin(spec.direction);
 
-        position.x += (vectorX * elapsedTime * speed);
-        position.y += (vectorY * elapsedTime * speed);
+        that.position.x += (vectorX * elapsedTime * spec.speed);
+        that.position.y += (vectorY * elapsedTime * spec.speed);
 
-        timeRemaining -= elapsedTime;
-
-        while (position.x < 0){
-            position.x += canvas.width;
+        while (that.position.x < 0){
+            that.position.x += spec.canvas.width;
         }
-        while (position.x > canvas.width){
-            position.x -= canvas.width;
+        while (that.position.x > spec.canvas.width){
+            that.position.x -= spec.canvas.width;
         }
-        while (position.y < 0){
-            position.y += canvas.height;
+        while (that.position.y < 0){
+            that.position.y += spec.canvas.height;
         }
-        while (position.y > canvas.height){
-            position.y -= canvas.height;
+        while (that.position.y > spec.canvas.height){
+            that.position.y -= spec.canvas.height;
         }
-
     };
 
-    that.render = function(){
-        spec.renderFunction({
-            imageSrc: spec.src,
-            rotation: 0,
-            center: {x: 0, y: 0},
-            width: spec.canvas.width,
-            height: spec.canvas.width,
-        }).draw();
+    that.rotateRight = function(elapsedTime) {
+        that.rotation += .01 * elapsedTime;
+    };
+    
+    that.rotateLeft = function(elapsedTime) {
+        that.rotation -= .01 * elapsedTime;
     };
 
     return that;
