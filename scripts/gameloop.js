@@ -21,7 +21,6 @@ MyGame.main = (function(graphics, keyboard, mouse){
     let ship = {
         position: {x: graphics.canvas.width/2, y: graphics.canvas.height/2},
         width: 100,
-        speed: 1000,
         src: 'images/ship.png',
         renderFunction: graphics.Texture,
         canvas: graphics.canvas,

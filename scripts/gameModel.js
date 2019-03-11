@@ -133,7 +133,6 @@ MyGame.gameModel = function(gameSpecs){
     let countDownGraphic = graphics.Letters(countDown);
     let livesGraphicsList = [];
     let shipGraphic = graphics.Texture(ship);
-    console.log(ship);
 
     let restartLives = function(){
         lives = 3;        
@@ -249,13 +248,8 @@ MyGame.gameModel = function(gameSpecs){
         detectCollisionWithShip()
     }
 
-    function restartShip(){
-        ship.position.x = graphics.canvas.width/2;
-        ship.position.y = graphics.canvas.height/2;
-    }
-
     function newGame(){
-        restartShip();
+        ship.reset();
         restartLives();
         levelCount = 1;
         score = 0;
@@ -267,13 +261,9 @@ MyGame.gameModel = function(gameSpecs){
     }
     
     function nextLevel(){
-        level.gapAbove = gapAbove;
-        brickLevel = graphics.BrickLevel(level);
         that.updateGame = countDownUpdate;
         countDownMode = true;
 
-        particleEffectGraphics.length = 0;
-        particleEffects.length = 0;
         score += 37*lives;
         score += 100;
         gameScore.text = "Score: " + score;
@@ -281,11 +271,18 @@ MyGame.gameModel = function(gameSpecs){
         levelTrack.text = "Level " + levelCount;
         restartLives();
         restartShip();
-        astroids.length = 1;
-        ballGraphicsList.length = 0;
-        restartBall();
+        astroids.length = 0;
         console.log('Level ' + levelCount );
     }
+
+    // TODO: shipmissile for shooting missiles.
+    that.shipMissile = function(elapsedTime){
+
+    };
+
+    that.shipThrust = function(elapsedTime){
+        ship.thrust(elapsedTime);
+    };
 
     that.turnShipRight = function(elapsedTime){
         ship.rotateRight(elapsedTime);

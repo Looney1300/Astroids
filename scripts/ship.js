@@ -19,39 +19,37 @@ MyGame.components.Ship = function(spec) {
     'use strict';
     let that = {};
 
-    that.position = {
+    that.center = {
         x: spec.position.x,
         y: spec.position.y
     };
     that.imageSrc = spec.src;
     that.rotation = spec.rotation;
-    that.center = {x: that.position.x, y: that.position.y};
     that.width = spec.width;
     that.height = spec.width;
-    that.speed = spec.speed;
+    that.xVector = 0;
+    that.yVector = 0;
+
     //------------------------------------------------------------------
     //
-    // Update the position of the missle.
+    // Update the center of the ship.
     //
     //------------------------------------------------------------------
     that.update = function(elapsedTime) {
-        let vectorX = Math.cos(spec.direction);
-        let vectorY = Math.sin(spec.direction);
+        that.center.x += (that.xVector * elapsedTime * .01);
+        that.center.y += (that.yVector * elapsedTime * .01);
 
-        that.position.x += (vectorX * elapsedTime * spec.speed);
-        that.position.y += (vectorY * elapsedTime * spec.speed);
-
-        while (that.position.x < 0){
-            that.position.x += spec.canvas.width;
+        while (that.center.x < 0){
+            that.center.x += spec.canvas.width;
         }
-        while (that.position.x > spec.canvas.width){
-            that.position.x -= spec.canvas.width;
+        while (that.center.x > spec.canvas.width){
+            that.center.x -= spec.canvas.width;
         }
-        while (that.position.y < 0){
-            that.position.y += spec.canvas.height;
+        while (that.center.y < 0){
+            that.center.y += spec.canvas.height;
         }
-        while (that.position.y > spec.canvas.height){
-            that.position.y -= spec.canvas.height;
+        while (that.center.y > spec.canvas.height){
+            that.center.y -= spec.canvas.height;
         }
     };
 
@@ -62,6 +60,20 @@ MyGame.components.Ship = function(spec) {
     that.rotateLeft = function(elapsedTime) {
         that.rotation -= .01 * elapsedTime;
     };
+
+    that.thrust = function(elapsedTime){
+        let yVal = -Math.cos(that.rotation);
+        let xVal = Math.sin(that.rotation);
+        that.xVector += .1 * elapsedTime * xVal;
+        that.yVector += .1 * elapsedTime * yVal;
+    }
+
+    that.reset = function(){
+        that.rotation = 0;
+        that.xVector = 0;
+        that.yVector = 0;
+        that.center = spec.position;
+    }
 
     return that;
 };
