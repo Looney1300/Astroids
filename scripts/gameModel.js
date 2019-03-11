@@ -1,14 +1,13 @@
 MyGame.gameModel = function(gameSpecs){
     let that = {};
     //Unpacking gameSpecs
-    let ship = gameSpecs.ship;
-    let ball = gameSpecs.ball;
+    let ship = MyGame.components.Ship(gameSpecs.ship);
     let colorList = gameSpecs.colorList;
     let background = gameSpecs.background;
     let menuBackground = gameSpecs.menuBackground;
 
-    let CANVASWIDTH = 1600;
-    let CANVASHEIGHT = 1000;
+    let CANVASWIDTH = gameSpecs.canvas.width;
+    let CANVASHEIGHT = gameSpecs.canvas.height;
 
     let graphics = MyGame.graphics;
     let particleSystem = MyGame.particleSystem;
@@ -139,14 +138,12 @@ MyGame.gameModel = function(gameSpecs){
         lives = 3;        
         livesGraphicsList.length = 0;
         for (let i=0; i<lives-1; ++i){
-            livesGraphicsList.push(graphics.Rectangle({
+            livesGraphicsList.push(graphics.Texture({
+                imageSrc: gameSpecs.ship.src,
                 rotation: 0,
-                x: CANVASWIDTH - (i+1)*100, 
-                y: CANVASHEIGHT - 30,
-                width: CANVASWIDTH/20,
-                height: CANVASHEIGHT/80,
-                fillStyle: paddle.fillStyle,
-                strokeStyle: paddle.strokeStyle
+                center: {x: CANVASWIDTH - 100*i - 50, y: 50},
+                width: gameSpecs.ship.width/2,
+                height: gameSpecs.ship.width/2,
             }));
         }
     }
@@ -178,12 +175,11 @@ MyGame.gameModel = function(gameSpecs){
         for (let i=0; i<livesGraphicsList.length; ++i){
             livesGraphicsList[i].draw();
         }
-        for (let i=0; i<ballGraphicsList.length; ++i){
-            ballGraphicsList[i].draw();
+        for (let i=0; i<astroids.length; ++i){
+            astroids[i].draw();
         }
         countDownGraphic.draw();
-        //TODO
-        //border.draw
+        ship.render();
     }
     
     let drawMenu = function(){
@@ -233,43 +229,23 @@ MyGame.gameModel = function(gameSpecs){
     let gameModelUpdate = function(elapsedTime){
         updateCollisions();
         particleSystem.update();
+        ship.update(elapsedTime);
     }
     
     //START - beginning update
     that.updateGame = menuUpdate;
-    
-    function detectCollisions(){
+
+    function detectCollisionWithShip(){
 
     }
 
-    function detectCollisionWithShip(ship){
-        paddleCenterX = paddle.x + 1/2 * paddle.width;
-        paddleX1 = paddle.x;
-        paddleY1 = paddle.y;
-        paddleX2 = paddle.x + paddle.width;
-        paddleY2 = paddle.y + paddle.height;
-        ballX1 = ship.centerX - ship.radius;
-        ballY1 = ship.centerY - ship.radius;
-        ballX2 = ship.centerX + ship.radius;
-        ballY2 = ship.centerY + ship.radius;
+    function detectCollisionWithMissiles(){
 
-        if (paddleX1 < ballX2 && paddleX2 > ballX1 && ship.yRate > 0){
-            if (paddleY1 < ballY2 && paddleY2 > ballY1){
-                let weight = 2 * (paddleCenterX - ship.centerX)/(paddle.width);
-                ship.xRate += paddle.reflectance * weight * ship.rate * -1;
-                ship.yRate *= -1;
-            }
-        }
     }
 
-    function detectCollisionWithMissiles(ship){
-        if (ship.centerX - ship.radius <= 0 && ship.xRate < 0){
-            ship.xRate *= -1;
-        }
-        if (ship.centerY - ship.radius <= 0 && ship.yRate < 0){
-            ship.yRate *= -1;
-        }
-        return true;
+    function updateCollisions(){
+        detectCollisionWithMissiles();
+        detectCollisionWithShip()
     }
 
     function restartShip(){
@@ -280,9 +256,6 @@ MyGame.gameModel = function(gameSpecs){
 
     function newGame(){
         restartShip();
-        level = breakerMaker.generateLevel(gameWidthInBricks0, gameHeightInBricks0, colorList);
-        level.gapAbove = gapAbove;
-        brickLevel = graphics.BrickLevel(level);
         restartLives();
         levelCount = 1;
         score = 0;
@@ -292,12 +265,8 @@ MyGame.gameModel = function(gameSpecs){
         countDownMode = true;
         console.log('New Game Starting');
     }
-
+    
     function nextLevel(){
-        gameWidthInBricks += 3;
-        gameHeightInBricks += 1;
-        brickUnit = CANVASWIDTH/gameWidthInBricks;
-        level = breakerMaker.generateLevel(gameWidthInBricks, gameHeightInBricks, colorList);
         level.gapAbove = gapAbove;
         brickLevel = graphics.BrickLevel(level);
         that.updateGame = countDownUpdate;
@@ -312,84 +281,19 @@ MyGame.gameModel = function(gameSpecs){
         levelTrack.text = "Level " + levelCount;
         restartLives();
         restartShip();
-        ballList.length = 1;
+        astroids.length = 1;
         ballGraphicsList.length = 0;
         restartBall();
         console.log('Level ' + levelCount );
     }
 
-    function updateCollisions(){
-        for (let i=0; i<ballList.length; ++i){
-            if (ballList[i].centerY < gapAbove + 2/5 * brickUnit * (gameHeightInBricks + 1) + ballList[i].radius){
-                if (detectCollisionWith(ballList[i])){ 
-                    if (level.brickList.length === 0){
-                        nextLevel();
-                        return;
-                    }
-                }
-            }else if (ballList[i].centerY > CANVASWIDTH - paddle.gapBelowPaddle - paddle.width*brickUnit){
-                detectCollisionWithShip(ballList[i]);
-            }
-            if (!detectCollisionWithMissiles(ballList[i])){
-                if (ballList.length === 1){
-                    --lives;
-                    livesGraphicsList.pop();
-                    restartBall(ball, paddle);
-                    that.updateGame = countDownUpdate;
-                    countDownMode = true;
-                    if (lives <= 0){
-                        top5.push(score);
-                        top5.sort(function(a,b){return b-a;})
-                        top5.splice(5, 1);
-                        for (let x=0; x<top5.length; ++x){
-                            MyGame.persistence.remove(x);
-                            MyGame.persistence.add(x, top5[x]);
-                        }
-                        top5 = MyGame.persistence.retrieveHighScores();
-                        updateTop5Graphics();
-                        that.updateGame = menuUpdate;
-                        that.drawGame = drawMenu;
-                    }
-                }else{
-                    ballList.splice(i,1);
-                    ballGraphicsList.splice(i,1);
-                }
-            }
-        }
-    }
+    that.turnShipRight = function(elapsedTime){
+        ship.rotation += .001 * elapsedTime;
+    };
     
-    function updateBalls(elapsedTime){
-        for (let i=0; i<ballList.length; ++i){
-            ballList[i].centerX += ballList[i].xRate * elapsedTime/1000;
-            ballList[i].centerY += ballList[i].yRate * elapsedTime/1000;
-        }
-    }
+    that.turnShipLeft = function(elapsedTime){
 
-    function isInRightBound(object){
-        return (object.x + object.width) < CANVASWIDTH;
-    }
-
-    function isInLeftBound(object){
-        return object.x > 0;
-    }
-
-    that.movePaddleRight = function(elapsedTime){
-        if (isInRightBound(paddle)){
-            paddle.x += elapsedTime/1000 * paddle.rate;
-            if (countDownMode){
-                ballList[0].centerX += elapsedTime/1000 * paddle.rate;
-            }
-        }
-    }
-    
-    that.movePaddleLeft = function(elapsedTime){
-        if (isInLeftBound(paddle)){
-            paddle.x -= elapsedTime/1000 * paddle.rate;
-            if (countDownMode){
-                ballList[0].centerX -= elapsedTime/1000 * paddle.rate;
-            }
-        }
-    }
+    };
 
     that.menuSelection = function(e){
         if (lives === 0){
@@ -420,17 +324,13 @@ MyGame.gameModel = function(gameSpecs){
             that.drawGame = drawMenu;
             lives = 0;
         }
-    }
+    };
 
     that.escape = function(){
         lives = 0;
         that.gameUpdate = menuUpdate;
         that.drawGame = drawMenu;
-        for (let i=0; i<ballList.length; ++i){
-            ballList[i].xRate = 0;
-            ballList[i].yRate = 0;
-        }
-    }
+    };
 
     that.clearHighScores = function(){
         for (let x=0; x<top5.length; ++x){
@@ -438,7 +338,7 @@ MyGame.gameModel = function(gameSpecs){
         }
         top5.length = 0;
         updateTop5Graphics();
-    }
+    };
 
     return that;
 };

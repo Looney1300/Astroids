@@ -1,6 +1,6 @@
-//On my MyGame object, I'm making a main property that is filled
+// On my MyGame object, I'm making a main property that is filled
 // with a function that is immediately invoked.
-MyGame.main = (function(graphics, breakerMaker, keyboard, mouse){
+MyGame.main = (function(graphics, keyboard, mouse){
     
     let previousTime = performance.now();
 
@@ -17,36 +17,28 @@ MyGame.main = (function(graphics, breakerMaker, keyboard, mouse){
         {fill: 'rgba(150, 50, 255, 1)', stroke: 'rgba(100, 35, 150, 1)'},        
     ]
 
-    //Starting paddle width and height in brick units.
-    // reflectance is how much the trajectory of the ball is changed after hitting 
-    // the end of the paddle in some arbitrary unit.
-    let paddle = {
-        fillStyle: 'rgba(0, 255, 0, 1)',
-        strokeStyle: 'rgba(0, 150, 0, 1)',
-        width: 2,
-        height: .4,
-        rate: 1000,
-        reflectance: .8 
-    }
-    
-    //Ball radius in width and height
-    let ball = {
-        fillStyle: 'rgba(255,255,255,1)',
-        strokeStyle: 'rgba(255,255,255,1)',
-        rate: paddle.rate * 0.7,
-        radius: .15
+    //Starting ship
+    let ship = {
+        position: {x: graphics.canvas.width/2, y: graphics.canvas.height/2},
+        width: 100,
+        speed: 1000,
+        src: 'images/ship.png',
+        renderFunction: graphics.Texture,
+        canvas: graphics.canvas,
+        rotation: 0,
     }
 
     //background images for gameplay and menu
-    let background = 'images/space1.jpg';
+    // let background = 'images/space1.jpg';
+    let background = 'images/black.png';
     let menuBackground = 'images/space2.jpg';
 
     let gameSpecs = {
-        paddle: paddle,
-        ball: ball,
+        ship: ship,
         background: background,
         menuBackground: menuBackground,
-        colorList: colorList
+        colorList: colorList,
+        canvas: graphics.canvas,
     }
 
     //generate the default gameModel
@@ -58,17 +50,25 @@ MyGame.main = (function(graphics, breakerMaker, keyboard, mouse){
     //----------------------------------------------
 
     //Default key/mouse registration to handlers
-    keyboard.registerKey(KeyEvent['DOM_VK_RIGHT'], gameModel.movePaddleRight);
-    keyboard.registerKey(KeyEvent['DOM_VK_LEFT'], gameModel.movePaddleLeft);
+    keyboard.registerKey(KeyEvent['DOM_VK_RIGHT'], gameModel.turnShipRight);
+    keyboard.registerKey(KeyEvent['DOM_VK_LEFT'], gameModel.turnShipLeft);
+    keyboard.registerKey(KeyEvent['DOM_VK_UP'], gameModel.shipThrust);
+    
+    keyboard.registerKey(KeyEvent['DOM_VK_D'], gameModel.turnShipRight);
+    keyboard.registerKey(KeyEvent['DOM_VK_A'], gameModel.turnShipLeft);
+    keyboard.registerKey(KeyEvent['DOM_VK_W'], gameModel.shipThrust);
+    
+    keyboard.registerKey(KeyEvent['DOM_VK_SPACE'], gameModel.shipMissile);
+
     keyboard.registerKey(KeyEvent['DOM_VK_ESCAPE'], gameModel.escape);
     keyboard.registerKey(KeyEvent['DOM_VK_C'], gameModel.clearHighScores);
+
 
     mouse.registerMouseReleasedHandler(gameModel.menuSelection);
 
     //----------------------------------------------
     //      Web Page Rendering scripts
     //----------------------------------------------
-
 
     let fpsList = [];
     let fpsAccumulator = 0;
@@ -98,7 +98,7 @@ MyGame.main = (function(graphics, breakerMaker, keyboard, mouse){
         keyboard.processInput(elapsedTime);
     }
 
-    function render(elapsedTime){
+    function render(){
         //Draw the game (clearing the screen is handled by the drawGame function)
         gameModel.drawGame();
     }
@@ -116,4 +116,4 @@ MyGame.main = (function(graphics, breakerMaker, keyboard, mouse){
     console.log('game initializing...');
     requestAnimationFrame(gameLoop);
 
-}(MyGame.graphics, MyGame.breakerMaker, MyGame.input.Keyboard(), MyGame.input.Mouse()));
+}(MyGame.graphics, MyGame.input.Keyboard(), MyGame.input.Mouse()));

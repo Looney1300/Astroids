@@ -22,12 +22,11 @@ EXAMPLE spec object:
      duration: 10000,
  }
 */
-MyGame.particleSystem = (function(graphics){
+MyGame.particleSystem = (function(){
 
     let particles = [];
     let activeParticleEffects = [];
     let particleGraphics = [];
-    let random = Random.create();
 
     /*
     Particles makes a list of particle graphics.
@@ -101,23 +100,23 @@ MyGame.particleSystem = (function(graphics){
             for (time; time > (1000/spec.particlesPerSec); time -= (1000/spec.particlesPerSec) ){
                 let p = {
                     graphicsFunction: spec.drawUsing,
-                    speed: Math.abs(random.nextGaussian(spec.speed.mean/1000, spec.speed.std/1000)),	// pixels per millisecond
+                    speed: Math.abs(Random.nextGaussian(spec.speed.mean/1000, spec.speed.std/1000)),	// pixels per millisecond
                     rotation: 0,
-                    lifetime: Math.abs(random.nextGaussian(spec.lifetime.mean, spec.lifetime.std)),	// milliseconds
+                    lifetime: Math.abs(Random.nextGaussian(spec.lifetime.mean, spec.lifetime.std)),	// milliseconds
                     alive: 0,
-                    size: random.nextGaussian(spec.size.mean, spec.size.std),
+                    size: Random.nextGaussian(spec.size.mean, spec.size.std),
                     o: 1,
                 };
                 if (hasLimitDirection){
-                    p.direction = random.nextCircleVectorAround(1, spec.specifyDirection.angle, spec.specifyDirection.std);
+                    p.direction = Random.nextCircleVectorAround(1, spec.specifyDirection.angle, spec.specifyDirection.std);
                 }else{
-                    p.direction = random.nextCircleVector(1);
+                    p.direction = Random.nextCircleVector(1);
                 }
                 if (hasDissappear){
                     p.disappear = spec.disappear;
                 }
                 if (hasRotationMax){
-                    p.rotationRate = random.nextGaussian(0, spec.rotationMax);
+                    p.rotationRate = Random.nextGaussian(0, spec.rotationMax);
                 }
                 if (hasGravity){
                     p.gravity = spec.gravity;
@@ -135,11 +134,11 @@ MyGame.particleSystem = (function(graphics){
                     p.imageSrc = spec.imageSrc;
                 }
                 if (hasXMax && hasYMax){
-                    p.position = { x: random.nextRangeFloat(spec.x, spec.xMax), y: random.nextRangeFloat(spec.y, spec.yMax)};
+                    p.position = { x: Random.nextRangeFloat(spec.x, spec.xMax), y: Random.nextRangeFloat(spec.y, spec.yMax)};
                 }else{
                     p.position = {x: spec.x, y: spec.y};
                 }
-                let index = Math.random()*100000 % particles.length;
+                let index = Math.Random()*100000 % particles.length;
                 if (hasOnTop){
                     index = particles.length - 1;
                 }
@@ -221,7 +220,7 @@ MyGame.particleSystem = (function(graphics){
         clearAll: clearAll
     };
 
-}(MyGame.graphics));
+}());
 
 // --------------------------------------------------------
 //
@@ -231,15 +230,6 @@ MyGame.particleSystem = (function(graphics){
 // one of these effects is needed, graphics functions take care of conversion.
 //
 // --------------------------------------------------------
-function particleIsInside(location, center, maxD){
-    if (Math.abs(location.x-center.x) > maxD){
-        return false;
-    }
-    else if(Math.abs(location.y-center.y) > maxD){
-        return false;
-    }
-    return true;
-}
 
 MyGame.particleSystem.playerDied = function(location, direction, viewPortCenter, maxD){
     if (!particleIsInside(location, viewPortCenter, maxD)){
@@ -402,9 +392,7 @@ MyGame.particleSystem.enemyHit = function(location, viewPortCenter, maxD){
 };
 
 MyGame.particleSystem.shotSmoke = function(location, direction, viewPortCenter, maxD){
-    // if (!particleIsInside(location, viewPortCenter, maxD)){
-    //     return;
-    // }
+
     let shotDirection = direction;
     while (shotDirection > 2*Math.PI){
         shotDirection -= 2*Math.PI;
@@ -455,32 +443,6 @@ MyGame.particleSystem.shotSmoke = function(location, direction, viewPortCenter, 
     
 };
 
-MyGame.particleSystem.shieldSparks = function(center, radius, duration, viewPortCenter, maxD){
-    let SPARKSPERCIRCUMFRANCEUNIT = .005;
-    let random = Random.create();
-    for (let i=0; i<radius*Math.PI*SPARKSPERCIRCUMFRANCEUNIT; ++i){
-        let cvec = random.nextCircleVector(radius);
-        //If inside extended viewport, then add a particle effect there.
-        if (particleIsInside({x:center.x + cvec.x, y:center.y + cvec.y}, viewPortCenter, maxD)){
-            let particleSpec = {
-                drawUsing: MyGame.graphics.Texture,
-                x: center.x + cvec.x,
-                y: center.y + cvec.y,
-                particlesPerSec: 1,
-                imageSrc: 'assets/spark.png',
-                rotationMax: 4,
-                lifetime: {mean: 1000, std: 500},
-                speed: {mean: 15, std: 5},
-                size: {mean: .01, std: .005},
-                specifyDirection: {angle: Math.atan2(cvec.y, cvec.x) + Math.PI, std: .5},
-                onTop: true,
-                gravity: 0,
-                duration: duration,
-            }
-            MyGame.particleSystem.ParticleEffect(particleSpec);
-        }
-    }
-};
 
 MyGame.particleSystem.hitBuilding = function(location, viewPortCenter, maxD){
     if (!particleIsInside(location, viewPortCenter, maxD)){

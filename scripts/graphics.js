@@ -79,7 +79,7 @@ MyGame.graphics = (function(){
         };
 
         that.draw = function(){
-            if (ready){                
+            if (ready){
                 context.save();
                 context.translate(spec.center.x, spec.center.y);
                 context.rotate(spec.rotation);
@@ -153,91 +153,25 @@ MyGame.graphics = (function(){
 
     /*
     Circle takes a spec and draws a circle from it
-     centerX
-     centerY
-     radius
+     spec = {
+         position: {x: 0, y: 0}
+         radius: 3
+         fillColor: '',
+         strokeColor: '',
+     }
     */
     function Circle(spec){
         let that = {};
         that.draw = function(){
             context.beginPath();
-            context.arc(spec.centerX, spec.centerY, spec.radius, 0, 2*3.14159265);
+            context.arc(spec.position.x, spec.position.y, spec.radius, 0, 2*3.14159265);
             context.closePath();
-            context.strokeStyle = spec.strokeStyle;
+            context.strokeStyle = spec.strokeColor;
             context.stroke();
-            context.fillStyle = spec.fillStyle;
+            context.fillStyle = spec.fillColor;
             context.fill();
         }
         return that;
-    }
-
-    //TODO: make a curvy line drawer.
-    function Curves(curveList){ }
-
-    /*
-    BrickBox function is passed a level object with the following:
-      width
-      height
-      brickList
-     It uses the Rectangle to draw the bricks in the level, centered on the level section of the canvas.
-     Bricks are assumed to have a width/height ratio of 5/2, and is calculated from the brickWidth given.
-    */
-    function BrickLevel(level){
-        let that = {};
-        let gapBetweenBricks = 10;
-        brickUnit = canvas.width/level.width;
-        //Build rectange spec List
-        function buildRectangleList(newBrickBox){
-            let rectangleList = [];
-            let gapAboveBricks = newBrickBox.gapAbove;
-            for (let i = 0; i < newBrickBox.brickList.length; ++i){
-                    //Give the necessary components to the Rectangle function.
-                    rectangleList.push({
-                        x: newBrickBox.brickList[i].x * brickUnit + 0.5*gapBetweenBricks,
-                        y: newBrickBox.brickList[i].y * 2/5 * brickUnit + gapAboveBricks,
-                        width: brickUnit - gapBetweenBricks,
-                        height: 2/5 * brickUnit - gapBetweenBricks,
-                        rotation: newBrickBox.brickList[i].rotation,
-                        fillStyle: newBrickBox.brickList[i].fillStyle,
-                        strokeStyle: newBrickBox.brickList[i].strokeStyle
-                    });
-            }
-            return rectangleList;
-        }
-
-        level.rectangleList = buildRectangleList(level);        
-        
-        that.draw = function(){
-            Rectangles(level.rectangleList).draw();
-        };
-        return that;
-    }
-
-    /*
-    Paddle draws a rectangle in the bottom center of the game.
-    */
-    function Paddle(paddle){
-        paddle.rotation = 0;
-        paddle.x = canvas.width/2 - (brickUnit * paddle.width)/2;
-        paddle.y = canvas.height - paddle.gapBelowPaddle;
-        paddle.x0 = paddle.x;
-        paddle.width = brickUnit * paddle.width;
-        paddle.height = 2/5 * brickUnit * paddle.height;
-        return Rectangle(paddle);
-    }
-
-    /*
-    Ball creates a ball.
-    */
-    function Ball(ball, paddle){
-        ball.rotation = 0;
-        //Starting x,y
-        ball.centerX = canvas.width/2;
-        ball.centerY = paddle.y - ball.radius0 * brickUnit;
-        ball.width = ball.radius0 * 2 * brickUnit;
-        ball.height = ball.radius0 * 2 * brickUnit;
-        ball.radius = ball.radius0 * brickUnit;
-        return Circle(ball);
     }
 
     /*
@@ -279,38 +213,6 @@ MyGame.graphics = (function(){
             }
         }
 
-        return that;
-    }
-
-    /*
-    Particles draws a list of particles.
-    */
-    function Particles(particles1){
-        let that = {};
-        that.draw = function(particles){
-            for (let i=0; i < particles.length; ++i){
-                if (particles[i].alive > 100){
-                    context.save();
-                    context.translate(particles[i].position.x + particles[i].size / 2, particles[i].position.y + particles[i].size / 2);
-                    context.rotate(particles[i].rotation);
-                    context.translate(-(particles[i].position.x + particles[i].size / 2), -(particles[i].position.y + particles[i].size / 2));
-            
-                    if (particles[i].hasOwnProperty('fill')){
-                        context.fillStyle = particles[i].fill;
-                        context.fillRect(particles[i].position.x, particles[i].position.y, particles[i].size, particles[i].size);
-                    }
-                    if (particles[i].hasOwnProperty('stroke')){
-                        context.strokeStyle = particles[i].stroke;
-                        context.strokeRect(particles[i].position.x, particles[i].position.y, particles[i].size, particles[i].size);
-                    }
-                    if (particles[i].hasOwnProperty('imageSrc')){
-                        particles[i].center = paricles[i].position;
-                        Texture(particles[i]).draw();
-                    }
-                    context.restore();
-                }
-            }
-        }
         return that;
     }
 
@@ -381,13 +283,10 @@ MyGame.graphics = (function(){
         Texture: Texture,
         Lines: Lines,
         Circle: Circle,
-        BrickLevel: BrickLevel,
-        Paddle: Paddle,
-        Ball: Ball,
         Letters: Letters,
-        Particles: Particles,
         Menu: Menu,
         Background: Background,
+        canvas: {width: canvas.width, height: canvas.height}
     };
 
 }());
