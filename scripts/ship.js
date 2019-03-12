@@ -30,6 +30,8 @@ MyGame.components.Ship = function(spec) {
     that.xVector = 0;
     that.yVector = 0;
 
+    that.missile = spec.missile;
+
     //------------------------------------------------------------------
     //
     // Update the center of the ship.
@@ -54,11 +56,11 @@ MyGame.components.Ship = function(spec) {
     };
 
     that.rotateRight = function(elapsedTime) {
-        that.rotation += .01 * elapsedTime;
+        that.rotation += .01 * elapsedTime * spec.rotateSpeedScale;
     };
     
     that.rotateLeft = function(elapsedTime) {
-        that.rotation -= .01 * elapsedTime;
+        that.rotation -= .01 * elapsedTime * spec.rotateSpeedScale;
     };
 
     that.thrust = function(elapsedTime){
@@ -66,14 +68,31 @@ MyGame.components.Ship = function(spec) {
         let xVal = Math.sin(that.rotation);
         that.xVector += .1 * elapsedTime * xVal;
         that.yVector += .1 * elapsedTime * yVal;
-    }
+    };
 
     that.reset = function(){
         that.rotation = 0;
         that.xVector = 0;
         that.yVector = 0;
-        that.center = spec.position;
-    }
+        that.center.x = spec.canvas.width/2;
+        that.center.y = spec.canvas.height/2;
+    };
+
+    that.didHitMe = function(astroid){
+        let d = Math.sqrt(Math.pow(that.center.x - astroid.center.x, 2) + Math.pow(that.center.y - astroid.center.y, 2));
+        return d < (that.width + astroid.width)/2;
+    };
+
+    that.blowUp = function(){
+        MyGame.particleSystem.hitBuilding({x: that.center.x, y: that.center.y});
+    };
+
+    that.shoot = function(missilesList, graphicsList){
+        spec.missile.position = {x: that.center.x, y: that.center.y};
+        spec.missile.rotation = that.rotation;
+        missilesList.push(MyGame.components.Missile(spec.missile));
+        graphicsList.push(MyGame.graphics.Circle(missilesList[missilesList.length-1]));
+    };
 
     return that;
 };

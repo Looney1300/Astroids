@@ -16,7 +16,11 @@ var Random = (function() {
 			x: Math.cos(angle),
 			y: Math.sin(angle)
 		};
-	}
+    }
+    
+    function nextInt(min, max) {
+        return Math.round(nextRange(min, max));
+    }
 	
 	//
 	// This is used to give a small performance optimization in generating gaussian random numbers.
@@ -55,10 +59,11 @@ var Random = (function() {
 	}
 	
 	return {
-		nextDouble : nextDouble,
-		nextRange : nextRange,
-		nextCircleVector : nextCircleVector,
-		nextGaussian : nextGaussian
+		nextDouble: nextDouble,
+		nextRange: nextRange,
+		nextCircleVector: nextCircleVector,
+        nextGaussian: nextGaussian,
+        nextInt: nextInt,
 	};
 	
 }());

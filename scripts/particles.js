@@ -193,9 +193,9 @@ MyGame.particleSystem = (function(){
         }
     }
 
-    function renderParticleSystem(viewPort){
+    function renderParticleSystem(){
         for (let i=0; i<particleGraphics.length; ++i){
-            particleGraphics[i].draw(viewPort);
+            particleGraphics[i].draw();
         }
     }
 
@@ -231,237 +231,22 @@ MyGame.particleSystem = (function(){
 //
 // --------------------------------------------------------
 
-MyGame.particleSystem.playerDied = function(location, direction, viewPortCenter, maxD){
-    if (!particleIsInside(location, viewPortCenter, maxD)){
-        return;
-    }
-    let shotDirection = direction;
-    let dx = Math.cos(shotDirection);
-    let dy = Math.sin(shotDirection);
-    let loc = {x:location.x - 8.5*dx, y:location.y - 7*dy};
-    let particleSpec = {
-        drawUsing: MyGame.graphics.Rectangle,
-        x: loc.x,
-        y: loc.y,
-        xMax: loc.x,
-        yMax: loc.y,
-        particlesPerSec: 500,
-        fill: Color.green_dark,
-        stroke: Color.black,
-        lineWidth: .5,
-        rotationMax: 1,
-        lifetime: {mean: 500, std: 50},
-        speed: {mean: 20, std: 10},
-        size: {mean: .004, std: .0003},
-        gravity: 0,
-        disappear: true,
-        duration: 100,
-    }
-    MyGame.particleSystem.ParticleEffect(particleSpec);
 
-    let particleSpec2 = {
-        drawUsing: MyGame.graphics.Circle,
-        x: loc.x,
-        y: loc.y,
-        xMax: loc.x,
-        yMax: loc.y,
-        particlesPerSec: 500,
-        fill: Color.red,
-        // stroke: Color.black,
-        // lineWidth: .5,
-        // rotationMax: 1,
-        lifetime: {mean: 150, std: 0},
-        speed: {mean: 60, std: 20},
-        size: {mean: .004, std: .001},
-        gravity: 0,
-        duration: 70,
-    }
-    MyGame.particleSystem.ParticleEffect(particleSpec2);
-    
-    let particleSpec3 = {
-        drawUsing: MyGame.graphics.Circle,
-        x: loc.x,
-        y: loc.y,
-        particlesPerSec: 9,
-        fill: Color.red_dark,
-        stroke: Color.black,
-        lineWidth: 2,
-        rotationMax: 1,
-        lifetime: {mean: 700, std: 0},
-        speed: {mean: 1, std: .2},
-        size: {mean: .012, std: 0},
-        onTop: true,
-        gravity: 0,
-        disappear: true,
-        duration: 100,
-    }
-    MyGame.particleSystem.ParticleEffect(particleSpec3);
-};
-
-MyGame.particleSystem.playerSelfDied = function(location, direction, viewPortCenter, maxD){
-    if (!particleIsInside(location, viewPortCenter, maxD)){
-        return;
-    }
-    let shotDirection = direction;
-    let dx = Math.cos(shotDirection);
-    let dy = Math.sin(shotDirection);
-    let loc = {x:location.x - 8.5*dx, y:location.y - 7*dy};
-
-    let particleSpec = {
-        drawUsing: MyGame.graphics.Rectangle,
-        x: loc.x ,
-        y: loc.y ,
-        xMax: loc.x ,
-        yMax: loc.y ,
-        particlesPerSec: 1000,
-        fill: Color.green_dark,
-        stroke: Color.black,
-        lineWidth: .5,
-        rotationMax: 2,
-        lifetime: {mean: 700, std: 200},
-        speed: {mean: 40, std: 10},
-        size: {mean: .004, std: .001},
-        gravity: 0,
-        duration: 100,
-    }
-    MyGame.particleSystem.ParticleEffect(particleSpec);
-
-    let particleSpec2 = {
-        drawUsing: MyGame.graphics.Circle,
-        x: loc.x ,
-        y: loc.y ,
-        xMax: loc.x ,
-        yMax: loc.y ,
-        particlesPerSec: 1000,
-        fill: Color.brown,
-        stroke: Color.black,
-        lineWidth: .5,
-        rotationMax: 1,
-        lifetime: {mean: 500, std: 50},
-        speed: {mean: 20, std: 10},
-        size: {mean: .004, std: .0003},
-        gravity: 0,
-        disappear: true,
-        duration: 100,
-    }
-    MyGame.particleSystem.ParticleEffect(particleSpec2);
-    
-    let particleSpec3 = {
-        drawUsing: MyGame.graphics.Circle,
-        x: loc.x,
-        y: loc.y,
-        particlesPerSec: 9,
-        fill: Color.green_dark,
-        stroke: Color.black,
-        lineWidth: 2,
-        rotationMax: 1,
-        lifetime: {mean: 500, std: 50},
-        speed: {mean: 1, std: .2},
-        size: {mean: .012, std: 0},
-        onTop: true,
-        gravity: 0,
-        disappear: true,
-        duration: 100,
-    }
-    MyGame.particleSystem.ParticleEffect(particleSpec3);
-};
-
-MyGame.particleSystem.enemyHit = function(location, viewPortCenter, maxD){
-    if (!particleIsInside(location, viewPortCenter, maxD)){
-        return;
-    }
-    let particleSpec = {
-        drawUsing: MyGame.graphics.Circle,
-        x: location.x,
-        y: location.y,
-        particlesPerSec: 200,
-        fill: Color.red,
-        // stroke: Color.red,
-        lineWidth: 0,
-        rotationMax: 1,
-        lifetime: {mean: 200, std: 50},
-        speed: {mean: 20, std: 10},
-        size: {mean: .003, std: .0005},
-        onTop: true,
-        gravity: 0,
-        disappear: true,
-        duration: 80,
-    }
-
-    MyGame.particleSystem.ParticleEffect(particleSpec);
-};
-
-MyGame.particleSystem.shotSmoke = function(location, direction, viewPortCenter, maxD){
-
-    let shotDirection = direction;
-    while (shotDirection > 2*Math.PI){
-        shotDirection -= 2*Math.PI;
-    }
-    while (shotDirection < -2*Math.PI){
-        shotDirection += 2*Math.PI;
-    }
-    let fireParticleSpec = {
-        drawUsing: MyGame.graphics.Rectangle,
-        // imageSrc: 'assets/USU-Logo.png',
-        fill: Color.yellow,
-        // stroke: Color.yellow,
-        // lineWidth: 2,
-        size: {mean: .004, std: 0},
-        x: location.x,
-        y: location.y,
-        particlesPerSec: 800,
-        rotationMax: 0,
-        lifetime: {mean: 50, std: 0},
-        speed: {mean: 400, std: 300},
-        specifyDirection: {angle: shotDirection, std: 0},
-        onTop: true,
-        gravity: 0,
-        disappear: true,
-        duration: 50,
-    }
-    let smokeParticleSpec = {
-        drawUsing: MyGame.graphics.Circle,
-        fill: Color.grey,
-        stroke: Color.grey,
-        lineWidth: 2,
-        size: {mean: .002, std: .0004},
-        x: location.x,
-        y: location.y,
-        particlesPerSec: 60,
-        rotationMax: 1,
-        lifetime: {mean: 200, std: 50},
-        speed: {mean: 50, std: 10},
-        specifyDirection: {angle: shotDirection, std: .3},
-        onTop: true,
-        gravity: 0,
-        disappear: true,
-        duration: 100,
-    }
-
-    MyGame.particleSystem.ParticleEffect(fireParticleSpec);
-    MyGame.particleSystem.ParticleEffect(smokeParticleSpec);
-    
-};
-
-
-MyGame.particleSystem.hitBuilding = function(location, viewPortCenter, maxD){
-    if (!particleIsInside(location, viewPortCenter, maxD)){
-        return;
-    }
+MyGame.particleSystem.hitBuilding = function(location){
     let particleSpec = {
         drawUsing: MyGame.graphics.Rectangle,
         x: location.x,
         y: location.y,
         particlesPerSec: 100,
         // imageSrc: 'bubble1b.png',
-        fill: Color.yellow,
+        fill: Color.white,
         rotationMax: 4,
-        lifetime: {mean: 80, std: 30},
+        lifetime: {mean: 1000, std: 30},
         speed: {mean: 100, std: 20},
-        size: {mean: .002, std: .0005},
+        size: {mean: .02, std: .005},
         onTop: true,
         gravity: 0,
-        disappear: true,
+        disappear: false,
         duration: 50,
     }
 

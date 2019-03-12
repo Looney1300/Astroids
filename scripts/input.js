@@ -28,41 +28,160 @@ MyGame.input = (function() {
 		return that;
 	}
 
-	function Keyboard() {
-		let that = {
-			//Tracks the time the key is pressed with the keyCode (number)
-			keys: {},
-			//Tracks the time the handlers associated with the keyCode (number)
-			handlers: {}
-		};
+	// ------------------------------------------------------------------
+    //
+    // Keyboard input handling support
+    //
+    // ------------------------------------------------------------------
+    function Keyboard() {
+        'use strict';
+        let keys = {},
+            keyRepeat = {},
+            handlers = {},
+            nextHandlerId = 0,
+            that = {};
 
-		that.registerKey = function(key, handler) {
-			that.handlers[key] = handler;
-		};
+        // ------------------------------------------------------------------
+        //
+        // Allows the client code to register a keyboard handler.
+        //
+        // ------------------------------------------------------------------
+        that.registerHandler = function(key, handler, repeat, rate) {
+            //
+            // If no repeat rate was passed in, use a value of 0 so that no delay between
+            // repeated keydown events occurs.
+            if (rate === undefined) {
+                rate = 0;
+            }
 
-		function keyPress(e) {
-			that.keys[e.keyCode] = e.timeStamp;
-		}
+            //
+            // Each entry is an array of handlers to allow multiple handlers per keyboard input
+            if (!handlers.hasOwnProperty(key)) {
+                handlers[key] = [];
+            }
+            handlers[key].push({
+                id: nextHandlerId,
+                key: key,
+                repeat: repeat,
+                rate: rate,
+                elapsedTime: rate,	// Initialize an initial elapsed time so the very first keypress will be valid
+                handler: handler
+            });
 
-		function keyRelease(e) {
-			delete that.keys[e.keyCode];
-		}
+            nextHandlerId += 1;
 
-		that.processInput = function(elapsedTime) {
-			for (let key in that.keys) {
-				if (that.keys.hasOwnProperty(key)) {
-					if (that.handlers[key]) {
-						that.handlers[key](elapsedTime);
-					}
-				}
-			}
-		};
+            //
+            // We return an handler id that client code must track if it is desired
+            // to unregister the handler in the future.
+            return handlers[key][handlers[key].length - 1].id;
+        };
 
-		document.addEventListener('keydown', keyPress);
-		document.addEventListener('keyup', keyRelease);
+        // ------------------------------------------------------------------
+        //
+        // Allows the client code to unregister a keyboard handler.
+        //
+        // ------------------------------------------------------------------
+        that.unregisterHandler = function(key, id) {
+            if (handlers.hasOwnProperty(key)) {
+                for (let entry = 0; entry < handlers[key].length; entry += 1) {
+                    if (handlers[key][entry].id === id) {
+                        handlers[key].splice(entry, 1);
+                        break;
+                    }
+                }
+            }
+        };
 
-		return that;
-	}
+        // ------------------------------------------------------------------
+        //
+        // Called when the 'keydown' event is fired from the browser.  During
+        // this handler we record which key caused the event.
+        //
+        // ------------------------------------------------------------------
+        function keyDown(event) {
+            keys[event.keyCode] = event.timeStamp;
+            //
+            // Because we can continuously receive the keyDown event, check to
+            // see if we already have this property.  If we do, we don't want to
+            // overwrite the value that already exists.
+            if (keyRepeat.hasOwnProperty(event.keyCode) === false) {
+                keyRepeat[event.keyCode] = false;
+            }
+        }
+
+        // ------------------------------------------------------------------
+        //
+        // Called when the 'keyrelease' event is fired from the browser.  When
+        // a key is released, we want to remove it from the set of keys currently
+        // indicated as down.
+        //
+        // ------------------------------------------------------------------
+        function keyRelease(event) {
+            delete keys[event.keyCode];
+            delete keyRepeat[event.keyCode];
+        }
+
+        // ------------------------------------------------------------------
+        //
+        // Allows the client to invoke all the handlers for the registered key/handlers.
+        //
+        // ------------------------------------------------------------------
+        that.update = function(elapsedTime) {
+            for (let key in keys) {
+                if (handlers.hasOwnProperty(key)) {
+                    for (let entry = 0; entry < handlers[key].length; entry += 1) {
+                        let event = handlers[key][entry];
+                        event.elapsedTime += elapsedTime;
+                        if (event.repeat === true) {
+                            //
+                            // Check the rate vs elapsed time for this key before invoking the handler
+                            if (event.elapsedTime >= event.rate) {
+                                event.handler(elapsedTime);
+                                keyRepeat[key] = true;
+                                //
+                                // Reset the elapsed time, adding in any extra time beyond the repeat
+                                // rate that may have accumulated.
+                                event.elapsedTime = (event.elapsedTime - event.rate);
+                            }
+                        } else if (event.repeat === false && keyRepeat[key] === false) {
+                            event.handler(elapsedTime);
+                            keyRepeat[key] = true;
+                        }
+                    }
+                }
+            }
+        };
+
+        //The button elements text is text of what key pressed,
+        // the button.name is the numeric keycode equivalent of the button pressed.
+        that.registerNextKeyPress = function(oldKeyElement){
+            document.removeEventListener('keydown', keyDown);
+            function kd(e){
+                MyGame.input.KeyEvent[oldKeyElement.id] = e.keyCode;
+                delete handlers[Number(oldKeyElement.name)];
+                oldKeyElement.name = e.keyCode;
+                oldKeyElement.innerText = MyGame.input.KeyName[e.keyCode];
+                MyGame.persistence.add(oldKeyElement.id, e.keyCode)
+                document.removeEventListener('keydown', kd);
+                document.addEventListener('keydown', keyDown);
+            };
+            document.addEventListener('keydown', kd);
+
+            document.removeEventListener('keyup', keyRelease);
+            function ku(e){
+                document.removeEventListener('keyup', ku);
+                document.addEventListener('keyup', keyRelease);		
+            };
+            document.addEventListener('keyup', keyRelease);
+        }
+
+        //
+        // This is how we receive notification of keyboard events.
+        document.addEventListener('keydown', keyDown);
+        document.addEventListener('keyup', keyRelease);
+
+        return that;
+    };
 
 	return {
 		Keyboard: Keyboard,

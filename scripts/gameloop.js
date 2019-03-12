@@ -8,6 +8,10 @@ MyGame.main = (function(graphics, keyboard, mouse){
     //            Default Game Model
     //-------------------------------------------
     //Generate default level
+    let astroidColorList = [
+        Color.white, Color.red, Color.blue,        
+    ];
+
     let colorList = [
         {fill: 'rgba(0, 0, 255, 1)', stroke: 'rgba(0, 0, 175, 1)'},
         {fill: 'rgba(255, 0, 0, 1)', stroke: 'rgba(175, 0, 0, 1)'},
@@ -17,28 +21,52 @@ MyGame.main = (function(graphics, keyboard, mouse){
         {fill: 'rgba(150, 50, 255, 1)', stroke: 'rgba(100, 35, 150, 1)'},        
     ]
 
+    // Base spec for missile of the ship.
+    let missile = {
+        radius: 3,
+        speed: 50,
+        color: Color.white,
+        lifespan: 1300, // in milliseconds
+        canvas: graphics.canvas,
+    };
+
     //Starting ship
     let ship = {
+        missile: missile,
         position: {x: graphics.canvas.width/2, y: graphics.canvas.height/2},
         width: 100,
         src: 'images/ship.png',
-        renderFunction: graphics.Texture,
         canvas: graphics.canvas,
         rotation: 0,
-    }
+        rotateSpeedScale: .4,
+    };
 
+    // Base for astroids.
+    let astroid = {
+        whereConstraints: {x0: 0, x1:graphics.canvas.width, y0: 0, y1: graphics.canvas.height},
+        canvas: graphics.canvas,
+        width: 100,
+        colorList: astroidColorList,
+        speed_factor: 10,
+        srcList: ['images/astroid0.png','images/astroid1.png','images/astroid2.png'],
+        size: 1, // This tracks what image it should be on in the srcList.
+    };
+    
     //background images for gameplay and menu
     // let background = 'images/space1.jpg';
     let background = 'images/black.png';
     let menuBackground = 'images/space2.jpg';
-
+    
     let gameSpecs = {
         ship: ship,
+        missile: missile,
+        num_astroids: 10, // number of astroids per level.
+        astroid: astroid,
         background: background,
         menuBackground: menuBackground,
-        colorList: colorList,
         canvas: graphics.canvas,
-    }
+        colorList: colorList,
+    };
 
     //generate the default gameModel
     let gameModel = MyGame.gameModel(gameSpecs);
@@ -49,18 +77,18 @@ MyGame.main = (function(graphics, keyboard, mouse){
     //----------------------------------------------
 
     //Default key/mouse registration to handlers
-    keyboard.registerKey(KeyEvent['DOM_VK_RIGHT'], gameModel.turnShipRight);
-    keyboard.registerKey(KeyEvent['DOM_VK_LEFT'], gameModel.turnShipLeft);
-    keyboard.registerKey(KeyEvent['DOM_VK_UP'], gameModel.shipThrust);
+    keyboard.registerHandler(KeyEvent['DOM_VK_RIGHT'], gameModel.turnShipRight, true);
+    keyboard.registerHandler(KeyEvent['DOM_VK_LEFT'], gameModel.turnShipLeft, true);
+    keyboard.registerHandler(KeyEvent['DOM_VK_UP'], gameModel.shipThrust, true);
     
-    keyboard.registerKey(KeyEvent['DOM_VK_D'], gameModel.turnShipRight);
-    keyboard.registerKey(KeyEvent['DOM_VK_A'], gameModel.turnShipLeft);
-    keyboard.registerKey(KeyEvent['DOM_VK_W'], gameModel.shipThrust);
+    keyboard.registerHandler(KeyEvent['DOM_VK_D'], gameModel.turnShipRight, true);
+    keyboard.registerHandler(KeyEvent['DOM_VK_A'], gameModel.turnShipLeft, true);
+    keyboard.registerHandler(KeyEvent['DOM_VK_W'], gameModel.shipThrust, true);
     
-    keyboard.registerKey(KeyEvent['DOM_VK_SPACE'], gameModel.shipMissile);
+    keyboard.registerHandler(KeyEvent['DOM_VK_SPACE'], gameModel.shipMissile, false, 200);
 
-    keyboard.registerKey(KeyEvent['DOM_VK_ESCAPE'], gameModel.escape);
-    keyboard.registerKey(KeyEvent['DOM_VK_C'], gameModel.clearHighScores);
+    keyboard.registerHandler(KeyEvent['DOM_VK_ESCAPE'], gameModel.escape, false);
+    keyboard.registerHandler(KeyEvent['DOM_VK_C'], gameModel.clearHighScores, false);
 
 
     mouse.registerMouseReleasedHandler(gameModel.menuSelection);
@@ -90,11 +118,8 @@ MyGame.main = (function(graphics, keyboard, mouse){
 
     function update(elapsedTime){
         updateFPS(elapsedTime);
-        gameModel.updateGame(elapsedTime);        
-    }
-
-    function processInput(elapsedTime){
-        keyboard.processInput(elapsedTime);
+        gameModel.updateGame(elapsedTime);
+        keyboard.update(elapsedTime);      
     }
 
     function render(){
@@ -106,7 +131,6 @@ MyGame.main = (function(graphics, keyboard, mouse){
         let elapsedTime = time - previousTime;
         previousTime = time;
 
-        processInput(elapsedTime);
         update(elapsedTime);
         render(elapsedTime);
         requestAnimationFrame(gameLoop);

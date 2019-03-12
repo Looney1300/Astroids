@@ -4,7 +4,7 @@
 //
 // The following object and associated properties are valid:
 // spec = {
-//     worldCoordinates: {x: 10, y: 10},
+//     center: {x: 10, y: 10},
 //     radius: 15,
 //     timeRemaining: 3, // In seconds
 //     canvas: {width: 200, height: 200},
@@ -17,83 +17,45 @@
 MyGame.components.Missile = function(spec) {
     'use strict';
     let that = {};
-    let canvas = spec.canvas;
-    let renderFunction = spec.renderFunction;
 
-    let speed = spec.speed;
-    let direction = spec.direction;
-    let radius = spec.radius;
-
-    let worldCoordinates = {
-        x: spec.worldCoordinates.x,
-        y: spec.worldCoordinates.y
+    that.center = {
+        x: spec.position.x,
+        y: spec.position.y
     };
+    
+    that.rotation = spec.rotation;
+    that.speed = spec.speed;
+    that.radius = spec.radius;
+    that.fillColor = spec.color;
+    that.strokeColor = spec.color;
 
-    let position = {
-        x: 0,
-        y: 0
-    };
+    that.timeRemaining = spec.lifespan;
 
-    let timeRemaining = spec.timeRemaining;
-
-    Object.defineProperty(that, 'worldCoordinates', {
-        get: () => worldCoordinates
-    });
-
-    Object.defineProperty(that, 'position', {
-        get: () => position
-    });
-
-    Object.defineProperty(that, 'radius', {
-        get: () => radius
-    });
-
-    Object.defineProperty(that, 'speed', {
-        get: () => speed
-    });
-
-
-    //------------------------------------------------------------------
-    //
-    // Update the position of the missle.
-    //
-    //------------------------------------------------------------------
     that.update = function(elapsedTime) {
-        let vectorX = Math.cos(direction);
-        let vectorY = Math.sin(direction);
+        let yVal = -Math.cos(that.rotation);
+        let xVal = Math.sin(that.rotation);
+        that.center.x += (that.speed * xVal * elapsedTime * .01);
+        that.center.y += (that.speed * yVal * elapsedTime * .01);
 
-        worldCoordinates.x += (vectorX * elapsedTime * speed);
-        worldCoordinates.y += (vectorY * elapsedTime * speed);
+        that.timeRemaining -= elapsedTime;
 
-        timeRemaining -= elapsedTime;
-
-        if (worldCoordinates.x < 0){
-            position.x += canvas.width;
+        while (that.center.x < 0){
+            that.center.x += spec.canvas.width;
         }
-        else if (worldCoordinates.x > canvas.width){
-            position.x -= canvas.width;
+        while (that.center.x > spec.canvas.width){
+            that.center.x -= spec.canvas.width;
         }
-        if (worldCoordinates.y < 0){
-            position.y += canvas.height;
+        while (that.center.y < 0){
+            that.center.y += spec.canvas.height;
         }
-        else if (worldCoordinates.y > canvas.height){
-            position.y -= canvas.height;
+        while (that.center.y > spec.canvas.height){
+            that.center.y -= spec.canvas.height;
         }
 
-        if (timeRemaining <= 0) {
+        if (that.timeRemaining < 0) {
             return false;
-        } else {
-            return true;
         }
-    };
-
-    that.render = function(){
-        renderFunction({
-            position: position,
-            radius: radius, 
-            fillColor: '#DAA520',
-            strokeColor: '#DAA520',
-        });
+        return true;
     }
 
     return that;

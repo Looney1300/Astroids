@@ -154,7 +154,7 @@ MyGame.graphics = (function(){
     /*
     Circle takes a spec and draws a circle from it
      spec = {
-         position: {x: 0, y: 0}
+         center: {x: 0, y: 0}
          radius: 3
          fillColor: '',
          strokeColor: '',
@@ -164,7 +164,7 @@ MyGame.graphics = (function(){
         let that = {};
         that.draw = function(){
             context.beginPath();
-            context.arc(spec.position.x, spec.position.y, spec.radius, 0, 2*3.14159265);
+            context.arc(spec.center.x, spec.center.y, spec.radius, 0, 2*3.14159265);
             context.closePath();
             context.strokeStyle = spec.strokeColor;
             context.stroke();
