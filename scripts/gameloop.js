@@ -45,22 +45,21 @@ MyGame.main = (function(graphics, keyboard, mouse){
     let astroid = {
         whereConstraints: {x0: 0, x1:graphics.canvas.width, y0: 0, y1: graphics.canvas.height},
         canvas: graphics.canvas,
-        width: 100,
-        colorList: astroidColorList,
-        speed_factor: 10,
+        width: 150,
+        speed_factor: 5,
         srcList: ['images/astroid0.png','images/astroid1.png','images/astroid2.png'],
         size: 1, // This tracks what image it should be on in the srcList.
     };
     
     //background images for gameplay and menu
     // let background = 'images/space1.jpg';
-    let background = 'images/black.png';
+    let background = 'images/space1.jpg';
     let menuBackground = 'images/space2.jpg';
     
     let gameSpecs = {
         ship: ship,
         missile: missile,
-        num_astroids: 10, // number of astroids per level.
+        num_astroids: 3, // number of astroids per level.
         astroid: astroid,
         background: background,
         menuBackground: menuBackground,
@@ -85,7 +84,7 @@ MyGame.main = (function(graphics, keyboard, mouse){
     keyboard.registerHandler(KeyEvent['DOM_VK_A'], gameModel.turnShipLeft, true);
     keyboard.registerHandler(KeyEvent['DOM_VK_W'], gameModel.shipThrust, true);
     
-    keyboard.registerHandler(KeyEvent['DOM_VK_SPACE'], gameModel.shipMissile, false, 200);
+    keyboard.registerHandler(KeyEvent['DOM_VK_SPACE'], gameModel.shipMissile, true, 100);
 
     keyboard.registerHandler(KeyEvent['DOM_VK_ESCAPE'], gameModel.escape, false);
     keyboard.registerHandler(KeyEvent['DOM_VK_C'], gameModel.clearHighScores, false);

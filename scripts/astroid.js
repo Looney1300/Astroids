@@ -36,19 +36,21 @@ MyGame.components.Astroid = function(spec){
         return d < stayOutRadius;
     }
 
-    while (that.insideStayOutSphere()){
-        that.center = {
-            x: Random.nextRange(0, spec.canvas.width),
-            y: Random.nextRange(0, spec.canvas.height)
-        };
+    if (that.size == 1){
+        while (that.insideStayOutSphere()){
+            that.center = {
+                x: Random.nextRange(0, spec.canvas.width),
+                y: Random.nextRange(0, spec.canvas.height)
+            };
+        }
     }
 
     that.size = spec.size; // 1 is the biggest, 1 is next biggest, ... n is the smallest
 
     that.imageSrc = spec.srcList[spec.size-1];
     that.rotation = Random.nextRange(0, 360);
-    that.width = spec.width/spec.size;
-    that.height = spec.width/spec.size;
+    that.width = spec.width - (spec.size-1) * 20;
+    that.height = spec.width - (spec.size-1) * 20;
 
     that.update = function(elapsedTime) {
         that.center.x += (that.rate.x * elapsedTime * .01);

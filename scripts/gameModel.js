@@ -6,6 +6,7 @@ MyGame.gameModel = function(gameSpecs){
     let background = gameSpecs.background;
     let menuBackground = gameSpecs.menuBackground;
     let astroid = gameSpecs.astroid;
+    let num_astroids0 = gameSpecs.num_astroids;
     function makeAstroids(){
         let astroidList = []
         for (let i=0; i<gameSpecs.num_astroids; ++i){
@@ -93,7 +94,7 @@ MyGame.gameModel = function(gameSpecs){
     
     let levelTrack = {
         text: 'Level '+ levelCount, 
-        font: '2em New-Courier', 
+        font: '3em New-Courier', 
         fillStyle: 'rgba(220, 220, 220, .2)', 
         fill: true, 
         stroke: true, 
@@ -106,14 +107,14 @@ MyGame.gameModel = function(gameSpecs){
 
     let gameScore = {
         text: 'Score: '+ score, 
-        font: '2em New-Courier', 
+        font: '3em New-Courier', 
         fillStyle: 'rgba(220, 220, 220, .2)', 
         fill: true, 
         stroke: true, 
         strokeStyle: 'rgba(255, 255, 255, 1)', 
-        align: 'right', 
+        align: 'left', 
         baseline: 'bottom',
-        x: 300,
+        x: 250,
         y: CANVASHEIGHT - 5
     };
 
@@ -254,26 +255,59 @@ MyGame.gameModel = function(gameSpecs){
     let menuUpdate = function(elapsedTime){ };
     
     let gameModelUpdate = function(elapsedTime){
-        updateCollisions();
-        particleSystem.update();
         ship.update(elapsedTime);
-        if (astroids.length == 0) {
-            nextLevel();
-            return;
-        }
-        for (let i=0; i<astroids.length; ++i){
-            astroids[i].update(elapsedTime);
-        }
         for (let i=missiles.length-1; i>=0; --i){
             if (!missiles[i].update(elapsedTime)){
                 missiles.splice(i, 1);
                 missileGraphicsList.splice(i,1);
             }
         }
+        for (let i=0; i<astroids.length; ++i){
+            astroids[i].update(elapsedTime);
+        }
+        updateCollisions();
+        if (astroids.length == 0) {
+            nextLevel();
+            return;
+        }
+        particleSystem.update();
     };
     
     //START - beginning update
     that.updateGame = menuUpdate;
+
+    let gameOverUpdate = function(elapsedTime){
+        gameScore.font = '8em New-Courier';
+        gameScore.align = 'center';
+        gameScore.x = CANVASWIDTH/2;
+        gameScore.y = CANVASHEIGHT/2;
+        countDown.time += elapsedTime;
+        if (countDown.time > 6000){
+            countDown.time = 0;
+            gameScore.font = '3em New-Courier';
+            gameScore.fillStyle = 'rgba(220, 220, 220, .2)';
+            gameScore.x = 250;
+            gameScore.y = CANVASHEIGHT - 5;
+            gameScore.align = 'left';
+            that.updateGame = menuUpdate;
+            that.drawGame = drawMenu;
+        } 
+        else if (countDown.time > 5000) {
+            gameScore.fillStyle = Color.green;
+        }
+        else if (countDown.time > 4000) {
+            gameScore.fillStyle = 'rgba(220, 220, 220, .2)';
+        }
+        else if (countDown.time > 3000) {
+            gameScore.fillStyle = Color.green;
+        }
+        else if (countDown.time > 2000) {
+            gameScore.fillStyle = 'rgba(220, 220, 220, .2)';
+        }
+        else if (countDown.time > 1000) {
+            gameScore.fillStyle = Color.green;
+        }
+    }
 
     function cleanUpAstroids(){
         for (i=0; i<astroids.length; ++i){
@@ -284,8 +318,16 @@ MyGame.gameModel = function(gameSpecs){
         }
     }
 
-    function addSubAstroids(astrd){
-
+    function endGameRoutine(){
+        top5.push(score);
+        top5.sort(function(a,b){return b-a;})
+        top5.splice(5, 1);
+        for (let x=0; x<top5.length; ++x){
+            MyGame.persistence.remove(x);
+            MyGame.persistence.add(x, top5[x]);
+        }
+        top5 = MyGame.persistence.retrieveHighScores();
+        updateTop5Graphics();
     }
 
     function detectCollisionWithShip(){
@@ -295,8 +337,8 @@ MyGame.gameModel = function(gameSpecs){
                 livesGraphicsList.pop();
                 if (lives == 0) {
                     console.log("Game Over");
-                    that.updateGame = menuUpdate;
-                    that.drawGame = drawMenu;
+                    endGameRoutine();
+                    that.updateGame = gameOverUpdate;
                 } else {
                     that.updateGame = countDownUpdate;
                     shipGraphic.draw = function(){};
@@ -319,33 +361,40 @@ MyGame.gameModel = function(gameSpecs){
                     gameScore.text = `Score: ${score}`;
                     astroiddeletes.push(i);
                     missiledeletes.push(j);
+
+                    // ----- Creating the sub astroids -----
+                    let thisastroid = {
+                        canvas: astroid.canvas,
+                        width: 100,
+                        speed_factor: 10,
+                        srcList: astroid.srcList,
+                        size: 1, // This tracks what image it should be on in the srcList.
+                    };
+                    thisastroid.whereConstraints = {
+                        x0: astroids[i].center.x - astroids[i].width/3,
+                        x1: astroids[i].center.x + astroids[i].width/3,
+                        y0: astroids[i].center.y - astroids[i].width/3,
+                        y1: astroids[i].center.y + astroids[i].width/3,
+                    };
+                    thisastroid.size = astroids[i].size + 1;
+            
+                    if (thisastroid.size <= astroid.srcList.length) {
+                        astroids.push(MyGame.components.Astroid(thisastroid));
+                        astroidGraphicsList.push(graphics.Texture(astroids[astroids.length-1]));
+                        astroids.push(MyGame.components.Astroid(thisastroid));
+                        astroidGraphicsList.push(graphics.Texture(astroids[astroids.length-1]));
+                        astroids.push(MyGame.components.Astroid(thisastroid));
+                        astroidGraphicsList.push(graphics.Texture(astroids[astroids.length-1]));
+                    }
+                    // ---------------------------------------
                 } 
             }
         }
-        let newAstroids = [];
-        let newAstroidGraphics = [];
+
         for (i=0; i<astroiddeletes.length; ++i){
-            // Creating the sub astroids
-            astroid.whereConstraints = {
-                x0: astroids[i].center.x - astroids[i].width/2,
-                x1: astroids[i].center.x + astroids[i].width/2,
-                y0: astroids[i].center.y - astroids[i].width/2,
-                y1: astroids[i].center.y + astroids[i].width/2,
-            };
-            astroid.size = astroids[i].size + 1;
-
-            newAstroids.push(MyGame.components.Astroid(astroid));
-            newAstroidGraphics.push(graphics.Texture(newAstroids[newAstroids.length-1]));
-            // -------------------------
-
             // Deleting astroids that were hit
             astroids.splice(astroiddeletes[i], 1);
             astroidGraphicsList.splice(astroiddeletes[i], 1);
-        }
-        // Adding the new sub astroids
-        for (i=0; i<newAstroids.length; ++i){
-            astroids.push(newAstroids[i]);
-            astroidGraphicsList.push(newAstroidGraphics[i]);
         }
 
         for (i=0; i<missiledeletes.length; ++i){
@@ -356,9 +405,7 @@ MyGame.gameModel = function(gameSpecs){
 
     function updateCollisions(){
         if (!countDownMode){
-            if (detectCollisionWithMissiles()){
-                
-            }
+            detectCollisionWithMissiles();
             if (detectCollisionWithShip()){
                 MyGame.particleSystem.hitBuilding(ship.center);
                 ship = null;
@@ -369,6 +416,7 @@ MyGame.gameModel = function(gameSpecs){
     function newGame(){
         ship.reset();
         restartLives();
+        gameSpecs.num_astroids = num_astroids0;
         astroids = makeAstroids();
         astroidGraphicsList = makeAstroidsGList();
         missiles.length = 0;
@@ -385,6 +433,9 @@ MyGame.gameModel = function(gameSpecs){
     function nextLevel(){
         that.updateGame = countDownUpdate;
 
+        gameSpecs.num_astroids += 2;
+        gameSpecs.astroid.width += Math.pow(-1, levelCount) * 50;
+        gameSpecs.astroid.speed_factor += 3;
         score += 50*lives;
         gameScore.text = "Score: " + score;
         ++levelCount;

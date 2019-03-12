@@ -80,7 +80,7 @@ MyGame.components.Ship = function(spec) {
 
     that.didHitMe = function(astroid){
         let d = Math.sqrt(Math.pow(that.center.x - astroid.center.x, 2) + Math.pow(that.center.y - astroid.center.y, 2));
-        return d < (that.width + astroid.width)/2;
+        return d < (that.width-20 + astroid.width)/2;
     };
 
     that.blowUp = function(){
