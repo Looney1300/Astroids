@@ -24,9 +24,9 @@ MyGame.main = (function(graphics, keyboard, mouse){
     // Base spec for missile of the ship.
     let missile = {
         radius: 3,
-        speed: 50,
+        speed: 100,
         color: Color.white,
-        lifespan: 1300, // in milliseconds
+        lifespan: 600, // in milliseconds
         canvas: graphics.canvas,
     };
 

@@ -417,11 +417,13 @@ MyGame.gameModel = function(gameSpecs){
         ship.reset();
         restartLives();
         gameSpecs.num_astroids = num_astroids0;
+        gameSpecs.astroid.size = 1;
         astroids = makeAstroids();
         astroidGraphicsList = makeAstroidsGList();
         missiles.length = 0;
         missileGraphicsList.length = 0;
         levelCount = 1;
+        levelTrack.text = 'Level: 1';
         score = 0;
         gameScore.text = "Score: " + score;
         that.drawGame = drawGame;
