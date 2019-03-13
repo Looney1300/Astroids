@@ -68,6 +68,7 @@ MyGame.components.Ship = function(spec) {
         let xVal = Math.sin(that.rotation);
         that.xVector += .1 * elapsedTime * xVal;
         that.yVector += .1 * elapsedTime * yVal;
+        MyGame.particleSystem.Exhaust({x: that.center.x - xVal*50, y: that.center.y - yVal*50});
     };
 
     that.reset = function(){
@@ -84,7 +85,7 @@ MyGame.components.Ship = function(spec) {
     };
 
     that.blowUp = function(){
-        MyGame.particleSystem.hitBuilding({x: that.center.x, y: that.center.y});
+        MyGame.particleSystem.ShipBlowUp({x: that.center.x, y: that.center.y});
     };
 
     that.shoot = function(missilesList, graphicsList){

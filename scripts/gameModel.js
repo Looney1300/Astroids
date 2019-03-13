@@ -25,6 +25,7 @@ MyGame.gameModel = function(gameSpecs){
     let particleSystem = MyGame.particleSystem;
 
     let countDownMode = true;
+    let gameScoreIsShowing = false;
     
     let score = 0;
     let lives = 0;
@@ -250,6 +251,7 @@ MyGame.gameModel = function(gameSpecs){
             that.updateGame = gameModelUpdate;
             countDownMode = false;
         }
+        particleSystem.update(elapsedTime);
     };
     
     let menuUpdate = function(elapsedTime){ };
@@ -270,13 +272,14 @@ MyGame.gameModel = function(gameSpecs){
             nextLevel();
             return;
         }
-        particleSystem.update();
+        particleSystem.update(elapsedTime);
     };
     
     //START - beginning update
     that.updateGame = menuUpdate;
 
     let gameOverUpdate = function(elapsedTime){
+        gameScoreIsShowing = true;
         gameScore.font = '8em New-Courier';
         gameScore.align = 'center';
         gameScore.x = CANVASWIDTH/2;
@@ -307,6 +310,7 @@ MyGame.gameModel = function(gameSpecs){
         else if (countDown.time > 1000) {
             gameScore.fillStyle = Color.green;
         }
+        particleSystem.update(elapsedTime);
     }
 
     function cleanUpAstroids(){
@@ -319,6 +323,9 @@ MyGame.gameModel = function(gameSpecs){
     }
 
     function endGameRoutine(){
+        ship.blowUp();
+        shipGraphic.draw = function(){};
+
         top5.push(score);
         top5.sort(function(a,b){return b-a;})
         top5.splice(5, 1);
@@ -342,7 +349,6 @@ MyGame.gameModel = function(gameSpecs){
                 } else {
                     that.updateGame = countDownUpdate;
                     shipGraphic.draw = function(){};
-                    astroids[i].blowUp();
                     cleanUpAstroids();
                     ship.blowUp();
                 }
@@ -357,6 +363,7 @@ MyGame.gameModel = function(gameSpecs){
         for (i=0; i<astroids.length; ++i){
             for (j=0; j<missiles.length; ++j){
                 if (astroids[i].didHitMe(missiles[j])){
+                    astroids[i].blowUp();
                     score += 100;
                     gameScore.text = `Score: ${score}`;
                     astroiddeletes.push(i);
@@ -407,7 +414,7 @@ MyGame.gameModel = function(gameSpecs){
         if (!countDownMode){
             detectCollisionWithMissiles();
             if (detectCollisionWithShip()){
-                MyGame.particleSystem.hitBuilding(ship.center);
+                ship.blowUp();
                 ship = null;
             }
         }
@@ -429,6 +436,7 @@ MyGame.gameModel = function(gameSpecs){
         that.drawGame = drawGame;
         that.updateGame = countDownUpdate;
         countDownMode = true;
+        gameScoreIsShowing = false;
         console.log('New Game Starting');
     }
     
@@ -502,9 +510,11 @@ MyGame.gameModel = function(gameSpecs){
     };
 
     that.escape = function(){
-        lives = 0;
-        that.gameUpdate = menuUpdate;
-        that.drawGame = drawMenu;
+        if (!gameScoreIsShowing && !countDownMode){
+            lives = 0;
+            that.gameUpdate = menuUpdate;
+            that.drawGame = drawMenu;
+        }
     };
 
     that.clearHighScores = function(){

@@ -43,9 +43,10 @@ MyGame.graphics = (function(){
             //3. Draw shape at original coordinates
             context.fillStyle = spec.fillStyle;
             context.fillRect(spec.x, spec.y, spec.width, spec.height);
-            context.strokeStyle = spec.strokeStyle;
-            context.lineWidth = 5;
-            context.strokeRect(spec.x, spec.y, spec.width, spec.height);
+            if (spec.hasOwnProperty('strokeStyle')){
+                context.strokeStyle = spec.strokeStyle;
+                context.strokeRect(spec.x, spec.y, spec.width, spec.height);
+            }
             //4. Undo translations and rotations of canvas.
             context.restore();
         };
@@ -164,10 +165,12 @@ MyGame.graphics = (function(){
         let that = {};
         that.draw = function(){
             context.beginPath();
-            context.arc(spec.center.x, spec.center.y, spec.radius, 0, 2*3.14159265);
+            context.arc(spec.x, spec.y, spec.radius, 0, 2*3.14159265);
             context.closePath();
-            context.strokeStyle = spec.strokeColor;
-            context.stroke();
+            if (spec.hasOwnProperty('strokeStyle')){
+                context.strokeStyle = spec.strokeStyle;
+                context.stroke();
+            }
             context.fillStyle = spec.fillColor;
             context.fill();
         }

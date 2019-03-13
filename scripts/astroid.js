@@ -71,7 +71,7 @@ MyGame.components.Astroid = function(spec){
     }
 
     that.blowUp = function(){
-        MyGame.particleSystem.hitBuilding({x: that.center.x, y: that.center.y});
+        MyGame.particleSystem.AstroidBlowUp({x: that.center.x, y: that.center.y}, that.size);
     }
 
     that.didHitMe = function(missile){

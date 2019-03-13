@@ -40,8 +40,9 @@ MyGame.particleSystem = (function(){
         }
         particle.x = particle.position.x;
         particle.y = particle.position.y;
-        particle.width = particle.size;
-        particle.height = particle.size;
+        particle.width = Math.abs(particle.size);
+        particle.height = particle.width;
+        particle.radius = particle.width/2;
         return particle.graphicsFunction(particle);
     }
 
@@ -138,7 +139,7 @@ MyGame.particleSystem = (function(){
                 }else{
                     p.position = {x: spec.x, y: spec.y};
                 }
-                let index = Math.Random()*100000 % particles.length;
+                let index = Math.random()*100000 % particles.length;
                 if (hasOnTop){
                     index = particles.length - 1;
                 }
@@ -163,7 +164,7 @@ MyGame.particleSystem = (function(){
                 particleGraphics.splice(particle, 1);
             }
         }
-        //Update updated particles.
+        //Update updated particles list with only living particles.
         for (let particle = 0; particle < particles.length; ++particle) {
             particles[particle].direction.y += (elapsedTime * particles[particle].gravity/1000);
             particles[particle].x += (elapsedTime * particles[particle].speed * particles[particle].direction.x);
@@ -232,23 +233,129 @@ MyGame.particleSystem = (function(){
 // --------------------------------------------------------
 
 
-MyGame.particleSystem.hitBuilding = function(location){
+MyGame.particleSystem.AstroidBlowUp = function(location, size){
     let particleSpec = {
         drawUsing: MyGame.graphics.Rectangle,
         x: location.x,
         y: location.y,
-        particlesPerSec: 100,
-        // imageSrc: 'bubble1b.png',
-        fill: Color.white,
+        particlesPerSec: 300,
+        fill: Color.grey,
         rotationMax: 4,
-        lifetime: {mean: 1000, std: 30},
-        speed: {mean: 100, std: 20},
-        size: {mean: .02, std: .005},
+        lifetime: {mean: 1200, std: 600},
+        speed: {mean: 80, std: 30},
+        size: {mean: 8*(4-size), std: 2*(4-size)},
         onTop: true,
         gravity: 0,
-        disappear: false,
-        duration: 50,
+        disappear: true,
+        duration: 30,
     }
-
+    
     MyGame.particleSystem.ParticleEffect(particleSpec);
+};
+
+MyGame.particleSystem.Exhaust = function(location){
+    let particleSpec = {
+        drawUsing: MyGame.graphics.Circle,
+        x: location.x,
+        y: location.y,
+        particlesPerSec: 500,
+        fill: Color.addAlpha(Color.grey, .3),
+        rotationMax: 4,
+        lifetime: {mean: 300, std: 60},
+        speed: {mean: 80, std: 30},
+        size: {mean: 5, std: 1},
+        onTop: true,
+        gravity: 0,
+        disappear: true,
+        duration: 20,
+    }
+    
+    MyGame.particleSystem.ParticleEffect(particleSpec);
+};
+
+MyGame.particleSystem.ShipBlowUp = function(location, direction){
+    let particleSpec = {
+        drawUsing: MyGame.graphics.Rectangle,
+        x: location.x,
+        y: location.y,
+        particlesPerSec: 300,
+        fill: Color.white,
+        rotationMax: 4,
+        lifetime: {mean: 600, std: 200},
+        speed: {mean: 150, std: 80},
+        size: {mean: 10, std: 4},
+        onTop: true,
+        gravity: 0,
+        disappear: true,
+        duration: 150,
+    }
+    MyGame.particleSystem.ParticleEffect(particleSpec);
+
+    let particleSpec1 = {
+        drawUsing: MyGame.graphics.Rectangle,
+        x: location.x - 10,
+        y: location.y,
+        particlesPerSec: 300,
+        fill: Color.white,
+        rotationMax: 4,
+        lifetime: {mean: 600, std: 200},
+        speed: {mean: 150, std: 80},
+        size: {mean: 10, std: 4},
+        onTop: true,
+        gravity: 0,
+        disappear: true,
+        duration: 150,
+    }
+    MyGame.particleSystem.ParticleEffect(particleSpec1);
+
+    let particleSpec2 = {
+        drawUsing: MyGame.graphics.Rectangle,
+        x: location.x,
+        y: location.y - 10,
+        particlesPerSec: 300,
+        fill: Color.white,
+        rotationMax: 4,
+        lifetime: {mean: 600, std: 200},
+        speed: {mean: 150, std: 80},
+        size: {mean: 10, std: 4},
+        onTop: true,
+        gravity: 0,
+        disappear: true,
+        duration: 150,
+    }
+    MyGame.particleSystem.ParticleEffect(particleSpec2);
+    
+    let particleSpec3 = {
+        drawUsing: MyGame.graphics.Rectangle,
+        x: location.x + 10,
+        y: location.y,
+        particlesPerSec: 300,
+        fill: Color.white,
+        rotationMax: 4,
+        lifetime: {mean: 600, std: 200},
+        speed: {mean: 150, std: 80},
+        size: {mean: 10, std: 4},
+        onTop: true,
+        gravity: 0,
+        disappear: true,
+        duration: 150,
+    }
+    MyGame.particleSystem.ParticleEffect(particleSpec3);
+    
+    let particleSpec4 = {
+        drawUsing: MyGame.graphics.Rectangle,
+        x: location.x,
+        y: location.y + 10,
+        particlesPerSec: 300,
+        fill: Color.white,
+        rotationMax: 4,
+        lifetime: {mean: 600, std: 200},
+        speed: {mean: 150, std: 80},
+        size: {mean: 10, std: 4},
+        onTop: true,
+        gravity: 0,
+        disappear: true,
+        duration: 150,
+    }
+    MyGame.particleSystem.ParticleEffect(particleSpec4);
 };
