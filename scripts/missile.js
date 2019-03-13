@@ -28,6 +28,8 @@ MyGame.components.Missile = function(spec) {
     that.radius = spec.radius;
     that.fillColor = spec.color;
     that.strokeColor = spec.color;
+    that.x = that.center.x;
+    that.y = that.center.y;
 
     that.timeRemaining = spec.lifespan;
 
@@ -36,6 +38,8 @@ MyGame.components.Missile = function(spec) {
         let xVal = Math.sin(that.rotation);
         that.center.x += (that.speed * xVal * elapsedTime * .01);
         that.center.y += (that.speed * yVal * elapsedTime * .01);
+        that.x = that.center.x;
+        that.y = that.center.y;
 
         that.timeRemaining -= elapsedTime;
 
